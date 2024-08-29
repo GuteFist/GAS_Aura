@@ -4,11 +4,41 @@
 #include "Player/AuraPlayerController.h"
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
-//#include "Engine.h"
+#include "Interaction/EnemyInterface.h"
+#include "Engine.h" //even though rider says this include is unnecessary, removing it causes compiler errors. 
 
 AAuraPlayerController::AAuraPlayerController()
 {
 	bReplicates = true;
+}
+
+void AAuraPlayerController::PlayerTick(float DeltaTime)
+{
+	Super::PlayerTick(DeltaTime);
+	CursorTrace();
+}
+
+void AAuraPlayerController::CursorTrace()
+{
+	FHitResult CursorHit;
+	GetHitResultUnderCursor(ECC_Visibility, false, CursorHit);
+	if(!CursorHit.bBlockingHit) return;
+
+	LastActor = ThisActor;
+	ThisActor = CursorHit.GetActor();
+
+	if(ThisActor != LastActor)
+	{
+		if(LastActor != nullptr)
+		{
+			LastActor->UnHighlightActor();
+		}
+
+		if(ThisActor != nullptr)
+		{
+			ThisActor->HighlightActor();
+		}
+	}
 }
 
 void AAuraPlayerController::BeginPlay()
@@ -53,3 +83,5 @@ void AAuraPlayerController::Move(const FInputActionValue& FInputActionValue)
 		ControlledPawn->AddMovementInput(RightDirection, InputAxisVector.X);
 	}
 }
+
+
